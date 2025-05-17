@@ -183,7 +183,7 @@ async function massOpenAnimated(startX, startY, delay = 50) {
     ) continue;
     visited[y][x] = true;
     // Skip bombs
-    if (isBomb(map[y][x])) continue;
+    if (isBomb(map[y][x]) || viewableMap[y][x]==2) continue;
     // Record for later reveal
     reveal.push([x, y]);
     // Enqueue neighbors
