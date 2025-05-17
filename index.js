@@ -9,9 +9,15 @@ let viewableMap = [];
 let showAll = false;
 let mapSize = 10;
 let lost = false;
+let canChange = true;
 ctx.canvas.width = mapSize*32;
 ctx.canvas.height = mapSize*32;
+// naprawione? gdy uzytkownik zmieni rozmiar podczas odkrywania to pokazuje tez bomby
+
+
+
 document.querySelector("#size").addEventListener("input", () => {
+    if (canChange == false) return;
     mapSize = document.querySelector("#size").value;
     
     ctx.canvas.width = mapSize*32;
@@ -21,11 +27,26 @@ document.querySelector("#size").addEventListener("input", () => {
 
 });
 document.querySelector("#difficulty").addEventListener("input", () => {
+    if (canChange == false) return;
     difficulty = 100 -document.querySelector("#difficulty").value;
     reset();
     generate();
 
 });
+function lostCondition() {
+    for (let y=0; y<mapSize; y++) {
+        for (let x=0; x<mapSize; x++) {
+
+            ctx.beginPath();
+            ctx.rect(32*x, 32*y, 32,32);
+            if (isBomb(map[y][x]) && viewableMap[y][x] == 2) ctx.fillStyle = "orange"
+            else if (isBomb(map[y][x])) ctx.fillStyle = "red";
+            else if (viewableMap[y][x] == 2) ctx.fillStyle = "gray";
+            else ctx.fillStyle = "green";
+            ctx.fill();        
+        }
+    }
+}
 function reset() {
     lost = false;
     firstMove = true;
@@ -114,7 +135,7 @@ function refresh() {
                 ctx.font = "20px Arial";
                 ctx.fillText(markBombCount(x,y),32*x+10,32*y+24);
             } else if (viewableMap[y][x] == 2) {
-                ctx.fillStyle = "orange";
+                ctx.fillStyle = "blue";
                 ctx.fill(); 
                 ctx.fillStyle = "black";
                 ctx.font = "20px Arial";
@@ -134,6 +155,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 async function massOpenAnimated(startX, startY, delay = 50) {
+    canChange= false;
   const rows = viewableMap.length;
   const cols = viewableMap[0].length;
   const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
@@ -171,6 +193,7 @@ async function massOpenAnimated(startX, startY, delay = 50) {
     refresh();
     await new Promise(r => setTimeout(r, delay));
   }
+  canChange = true;
 }
 
 canvas.oncontextmenu = function(e) { e.preventDefault(); e.stopPropagation(); }
@@ -199,6 +222,7 @@ async function getMousePosition(canvas, event) {
         viewableMap[mapY][mapX] = true;
         refresh();
         lost = true;
+        lostCondition();
     }
     if (firstMove) {
         // first move cannot be bomb;
@@ -223,7 +247,7 @@ async function getMousePosition(canvas, event) {
     console.log(map[mapY][mapX]<difficulty ? "green" : "red");
 }
 canvas.addEventListener("mousedown", async (e) => {
-    if(lost)return;
+    if(lost || !canChange)return;
     await getMousePosition(canvas, e);
     
 })
