@@ -40,6 +40,7 @@ function generate() {
         viewableMap[y] = [];
         for (let x=0; x<mapSize; x++) {
             map[y][x] = Math.round(Math.random()*100)-1;
+            map[y][x] = map[y][x]<difficulty ? 0 : 1;
             viewableMap[y][x] = false;
             ctx.beginPath();
             ctx.rect(32*x, 32*y, 32,32);
@@ -185,7 +186,7 @@ async function getMousePosition(canvas, event) {
         "Coordinate y: " + y);
     let mapX = Math.floor(x/32);
     let mapY = Math.floor(y/32);
-    if (event.button == 2) {
+    if (event.button == 2 && !firstMove) {
         viewableMap[mapY][mapX] = viewableMap[mapY][mapX] == 2 ? false : 2;
         refresh();
         return;
