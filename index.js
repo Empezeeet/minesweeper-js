@@ -71,6 +71,11 @@ function generate() {
             ctx.fill();        
         }
     }
+    let counts = {};
+    for (const num of [].concat(...map)) {
+          counts[num] = counts[num] ? counts[num] + 1 : 1;
+    }
+    console.log(counts);
 }
 generate()
 
@@ -112,7 +117,7 @@ function checkAreAllBombsMarked() {
                 console.log("x " + x + "y " + y + "is unchecked");
                 return false;
             }
-            if (viewableMap[y][x] == 2 && viewableMap[y][x] != true && isBomb(map[y][x])) {
+            if (viewableMap[y][x] == 2 && !isBomb(map[y][x])) {
                 console.log(`X ${x} Y ${y} is ${viewableMap[y][x]} and isBomb=${isBomb(map[y][x])}`)
                 return false;
             }
