@@ -107,6 +107,7 @@ function refresh() {
             ctx.rect(32*x, 32*y, 32,32);
             if (viewableMap[y][x] == true || showAll == true) {
                 ctx.fillStyle = map[y][x]<difficulty ? "green" : "red";
+                map[y][x] = map[y][x]<difficulty ? 0 : 1;
                 ctx.fill();
                 ctx.fillStyle = "black";
                 ctx.font = "20px Arial";
