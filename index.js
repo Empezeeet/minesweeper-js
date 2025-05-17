@@ -91,7 +91,7 @@ function checkAreAllBombsMarked() {
                 console.log("x " + x + "y " + y + "is unchecked");
                 return false;
             }
-            if (viewableMap[y][x] != 2 && viewableMap[y][x] != true && isBomb(map[y][x])) {
+            if (viewableMap[y][x] == 2 && viewableMap[y][x] != true && isBomb(map[y][x])) {
                 console.log(`X ${x} Y ${y} is ${viewableMap[y][x]} and isBomb=${isBomb(map[y][x])}`)
                 return false;
             }
