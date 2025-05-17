@@ -12,7 +12,6 @@ let lost = false;
 let canChange = true;
 ctx.canvas.width = mapSize*32;
 ctx.canvas.height = mapSize*32;
-// naprawione? gdy uzytkownik zmieni rozmiar podczas odkrywania to pokazuje tez bomby
 
 
 
@@ -28,30 +27,29 @@ document.querySelector("#size").addEventListener("input", () => {
 });
 document.querySelector("#difficulty").addEventListener("input", () => {
     if (canChange == false) return;
-    difficulty = 100 -document.querySelector("#difficulty").value;
+    difficulty = 100 - document.querySelector("#difficulty").value;
     reset();
-    generate();
-
 });
 function lostCondition() {
     for (let y=0; y<mapSize; y++) {
         for (let x=0; x<mapSize; x++) {
+            let color;
+            if (isBomb(map[y][x]) && viewableMap[y][x] == 2) color = "orange"
+            else if (isBomb(map[y][x])) color = "red";
+            else if (viewableMap[y][x] == 2) color = "gray";
+            else color = "green";
 
-            ctx.beginPath();
-            ctx.rect(32*x, 32*y, 32,32);
-            if (isBomb(map[y][x]) && viewableMap[y][x] == 2) ctx.fillStyle = "orange"
-            else if (isBomb(map[y][x])) ctx.fillStyle = "red";
-            else if (viewableMap[y][x] == 2) ctx.fillStyle = "gray";
-            else ctx.fillStyle = "green";
-            ctx.fill();        
+            drawCell(x,y, color);
+
+     
         }
     }
 }
 function reset() {
     lost = false;
     firstMove = true;
-    document.querySelector("#title").textContent = "Saper!";
-
+    canChange = true;
+    document.querySelector("#title").textContent = "Saper";
     generate();
 }
 
@@ -60,31 +58,18 @@ function generate() {
         map[y] = [];
         viewableMap[y] = [];
         for (let x=0; x<mapSize; x++) {
-            map[y][x] = Math.round(Math.random()*100)-1;
-            map[y][x] = map[y][x]<difficulty ? 0 : 1;
+            map[y][x] = (Math.round(Math.random()*100)-1)<difficulty ? 0 : 1;
             viewableMap[y][x] = false;
-            ctx.beginPath();
-            ctx.rect(32*x, 32*y, 32,32);
-            ctx.fillStyle = "gray";
-            if (showAll)
-                ctx.fillStyle =  map[y][x]<difficulty ? "green" : "red";
-            ctx.fill();        
+            drawCell(x,y);
         }
     }
-    let counts = {};
-    for (const num of [].concat(...map)) {
-          counts[num] = counts[num] ? counts[num] + 1 : 1;
-    }
-    console.log(counts);
 }
-generate()
 
-function between(x, min, max) {
-  return x >= min && x < max;
-}
+
 function isBomb(val) {
     return val==1;
 }
+// chatgpt
 function markBombCount(mapX, mapY) {
   const rows = map.length;
   const cols = map[0].length;
@@ -92,16 +77,14 @@ function markBombCount(mapX, mapY) {
 
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
-      // skip the cell itself
-      if (dx === 0 && dy === 0) continue;
+
+        if (dx === 0 && dy === 0) continue;
 
       const nx = mapX + dx;
       const ny = mapY + dy;
 
-      // skip out-of-bounds neighbors
       if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) continue;
 
-      // if it’s a bomb (>= difficulty), increment
       if (isBomb(map[ny][nx])) {
         count++;
       }
@@ -113,45 +96,48 @@ function markBombCount(mapX, mapY) {
 function checkAreAllBombsMarked() {
     for (let y=0; y<mapSize; y++) {
         for (let x=0; x<mapSize; x++) {
-            if (viewableMap[y][x] == false) {
-                console.log("x " + x + "y " + y + "is unchecked");
+            if (viewableMap[y][x] == false) 
                 return false;
-            }
-            if (viewableMap[y][x] == 2 && !isBomb(map[y][x])) {
-                console.log(`X ${x} Y ${y} is ${viewableMap[y][x]} and isBomb=${isBomb(map[y][x])}`)
+            if (viewableMap[y][x] == 2 && !isBomb(map[y][x]))
                 return false;
-            }
         }
     }
-    console.log("OK")
     document.querySelector("#title").textContent = "Saper - WYGRANA!";
     return true;
 }
-function refresh() {
-    for (let y=0; y<mapSize; y++) {
-        for (let x=0; x<mapSize; x++) {
-            ctx.beginPath();
-            ctx.rect(32*x, 32*y, 32,32);
-            if (viewableMap[y][x] == true || showAll == true) {
-                ctx.fillStyle = map[y][x]==0 ? "green" : "red";
-                
-                ctx.fill();
-                ctx.fillStyle = "black";
-                ctx.font = "20px Arial";
-                ctx.fillText(markBombCount(x,y),32*x+10,32*y+24);
-            } else if (viewableMap[y][x] == 2) {
-                ctx.fillStyle = "blue";
-                ctx.fill(); 
-                ctx.fillStyle = "black";
-                ctx.font = "20px Arial";
-                ctx.fillText("B",32*x+10, 32*y+24);
-            } else {
-                ctx.fillStyle = "gray";
-                ctx.fill(); 
-            }
-                   
-        }
+function drawCell(x, y, forceColor="none") {
+    ctx.beginPath();
+    ctx.rect(32*x, 32*y, 32, 32);
+    ctx.strokeStyle = "#black"
+    let text = "";
+    if (viewableMap[y][x] == true) {
+        ctx.fillStyle = map[y][x]==0 ? "green" : "red";
+        text = markBombCount(x,y);
     }
+    else if (viewableMap[y][x] == 2) {// marked as bomb
+        ctx.fillStyle = "blue";
+        text = "B";
+    } else if(viewableMap[y][x] == false) {
+        ctx.fillStyle = "gray";
+        text = "";
+    }
+
+    if (map[y][x] == 1 && text!="B") 
+        text = ""; // hide bomb count when cell is bomb
+    if (forceColor != "none") 
+        ctx.fillStyle = forceColor;
+
+    ctx.fill();
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText(text,32*x+10,32*y+24);
+    ctx.stroke();
+}
+function refresh() {
+    for (let y=0; y<mapSize; y++) 
+        for (let x=0; x<mapSize; x++) 
+           drawCell(y,x);
+         
     checkAreAllBombsMarked()
     
 }
@@ -159,6 +145,7 @@ function refresh() {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+// chatgpt
 async function massOpenAnimated(startX, startY, delay = 50) {
     canChange= false;
   const rows = viewableMap.length;
@@ -201,34 +188,22 @@ async function massOpenAnimated(startX, startY, delay = 50) {
   canChange = true;
 }
 
-canvas.oncontextmenu = function(e) { e.preventDefault(); e.stopPropagation(); }
 
 
 
 
 async function getMousePosition(canvas, event) {
-    let rect = canvas.getBoundingClientRect();
-    let x = event.clientX - rect.left;
-    let y = event.clientY - rect.top;
-    console.log("Coordinate x: " + x,
-        "Coordinate y: " + y);
-    let mapX = Math.floor(x/32);
-    let mapY = Math.floor(y/32);
-    if (event.button == 2 && !firstMove) {
+    let rect = canvas.getBoundingClientRect();   
+    let mapX = Math.floor((event.clientX - rect.left)/32);
+    let mapY = Math.floor((event.clientY - rect.top)/32);
+
+    if (event.button == 2 && !firstMove) { // toggle bomb flag.
         viewableMap[mapY][mapX] = viewableMap[mapY][mapX] == 2 ? false : 2;
         refresh();
         return;
     }
 
-    if (isBomb(map[mapY][mapX]) && !firstMove) {
-        console.log(`map[${mapY}][${mapX}] = ${map[mapY][mapX]} | isBomb: ${isBomb(map[mapY][mapX])}`)
-        // lost.
-            document.querySelector("#title").textContent = "Saper - PRZEGRANA!";
-        viewableMap[mapY][mapX] = true;
-        refresh();
-        lost = true;
-        lostCondition();
-    }
+    
     if (firstMove) {
         // first move cannot be bomb;
         map[mapY][mapX] = 0;
@@ -237,22 +212,34 @@ async function getMousePosition(canvas, event) {
 
     viewableMap[mapY][mapX] = false;
     if (viewableMap[mapY][mapX] == false) {
-        console.log("cell is closed, opening!");
         await massOpenAnimated(mapX, mapY, 10);
     } else {
         viewableMap[mapY][mapX] = true;
+        
+    }
+    refresh();
+    if (isBomb(map[mapY][mapX]) && !firstMove) { // lost.
+        document.querySelector("#title").textContent = "Saper - PRZEGRANA!";
+        viewableMap[mapY][mapX] = true;
         refresh();
+        lost = true;
+        lostCondition();
+        return;
+    }
+    if (checkAreAllBombsMarked()) { // win.
+        canChange = false;
     }
     
-    let finished = checkAreAllBombsMarked();
-    if (finished) {
-        document.querySelector("#title").textContent = "Saper - WYGRANA!";
-    }
-    
-    console.log(map[mapY][mapX]<difficulty ? "green" : "red");
 }
+
+// disable right click menu on canvas
+canvas.oncontextmenu = function(e) { e.preventDefault(); e.stopPropagation(); }
+
+// action when clicking canvas
 canvas.addEventListener("mousedown", async (e) => {
     if(lost || !canChange)return;
     await getMousePosition(canvas, e);
     
 })
+// start.
+generate(); 
