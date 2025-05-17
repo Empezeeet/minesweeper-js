@@ -57,7 +57,7 @@ function between(x, min, max) {
   return x >= min && x < max;
 }
 function isBomb(val) {
-    return !val<difficulty;
+    return val==1;
 }
 function markBombCount(mapX, mapY) {
   const rows = map.length;
