@@ -25,8 +25,10 @@ document.querySelector("#difficulty").addEventListener("input", () => {
 
 });
 function reset() {
-    lost =false;
+    lost = false;
     firstMove = true;
+    document.querySelector("#title").textContent = "Saper!";
+
     generate();
 }
 
