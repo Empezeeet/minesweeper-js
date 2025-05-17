@@ -16,11 +16,13 @@ document.querySelector("#size").addEventListener("input", () => {
     
     ctx.canvas.width = mapSize*32;
     ctx.canvas.height = mapSize*32;
+    reset();
     generate();
 
 });
 document.querySelector("#difficulty").addEventListener("input", () => {
     difficulty = 100 -document.querySelector("#difficulty").value;
+    reset();
     generate();
 
 });
