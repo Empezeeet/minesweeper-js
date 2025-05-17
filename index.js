@@ -76,7 +76,7 @@ function markBombCount(mapX, mapY) {
       if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) continue;
 
       // if it’s a bomb (>= difficulty), increment
-      if (map[ny][nx] >= difficulty) {
+      if (isBomb(map[ny][nx])) {
         count++;
       }
     }
@@ -107,8 +107,8 @@ function refresh() {
             ctx.beginPath();
             ctx.rect(32*x, 32*y, 32,32);
             if (viewableMap[y][x] == true || showAll == true) {
-                ctx.fillStyle = map[y][x]<difficulty ? "green" : "red";
-                map[y][x] = map[y][x]<difficulty ? 0 : 1;
+                ctx.fillStyle = map[y][x]==0 ? "green" : "red";
+                
                 ctx.fill();
                 ctx.fillStyle = "black";
                 ctx.font = "20px Arial";
@@ -156,7 +156,7 @@ async function massOpenAnimated(startX, startY, delay = 50) {
     ) continue;
     visited[y][x] = true;
     // Skip bombs
-    if (map[y][x] >= difficulty) continue;
+    if (isBomb(map[y][x])) continue;
     // Record for later reveal
     reveal.push([x, y]);
     // Enqueue neighbors
@@ -193,6 +193,7 @@ async function getMousePosition(canvas, event) {
     }
 
     if (isBomb(map[mapY][mapX]) && !firstMove) {
+        console.log(`map[${mapY}][${mapX}] = ${map[mapY][mapX]} | isBomb: ${isBomb(map[mapY][mapX])}`)
         // lost.
             document.querySelector("#title").textContent = "Saper - PRZEGRANA!";
         viewableMap[mapY][mapX] = true;
